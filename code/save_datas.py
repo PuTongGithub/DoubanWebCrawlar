@@ -13,14 +13,14 @@ class Database:
                 original_title varchar(255),
                 douban_id varchar(10),
                 poster_url varchar(255),
-                director varchar(100),
-                writers varchar(150),
+                director varchar(255),
+                writers varchar(255),
                 actors text,
                 type varchar(100),
                 producer_area varchar(100),
                 language varchar(50),
-                release_data varchar(100),
-                film_length varchar(100),
+                release_data varchar(150),
+                film_length varchar(255),
                 other_title varchar(255),
                 imdb_id varchar(20),
                 douban_score varchar(10),
@@ -29,10 +29,6 @@ class Database:
         )
         
     def insert(self, data):
-        while True:
-            pos = data['plot'].find('"')
-            if pos == -1: break
-            data['plot'] = data['plot'][:pos] + data['plot'][pos+1:]
         self.cur.execute(
             """insert into {0} (
                 title, original_title, douban_id, poster_url, director, writers, actors, type, producer_area, 

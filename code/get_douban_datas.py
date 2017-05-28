@@ -6,8 +6,8 @@ from url_check import D_tree
 
 class Douban:
     def __init__(self):
-        self.list_sleep_time = 0.5
-        self.data_sleep_time = 0.5
+        self.list_sleep_time = 0.2
+        self.data_sleep_time = 0.3
         self.main_url = 'https://movie.douban.com'
         self.list_path = '/tag'
         self.list_next_page_query = '?start={0}&type=T'
@@ -18,7 +18,7 @@ class Douban:
             'Accept-Language': 'zh-CN,zh;q=0.8',
             'Accept-Encoding': 'gzip, deflate, br',
             'Referer': 'https://movie.douban.com/tag/',
-            'Cookie': 'viewed="5905439"; bid=NBloB1Us9f8; gr_user_id=37fbc163-03d1-4020-88ed-3f2d8e443923; __utma=30149280.182428951.1495358969.1495695690.1495780958.4; __utmz=30149280.1495695690.3.3.utmcsr=bing|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); ll="118371"; _pk_ref.100001.4cf6=%5B%22%22%2C%22%22%2C1495780954%2C%22https%3A%2F%2Fwww.douban.com%2F%22%5D; _pk_id.100001.4cf6=715798761c2b9040.1495358976.3.1495781310.1495701649.; __utma=223695111.1138780141.1495358976.1495695429.1495780958.3; __utmz=223695111.1495695429.2.2.utmcsr=douban.com|utmccn=(referral)|utmcmd=referral|utmcct=/; __yadk_uid=kJJnBOxUR4E0EZGqdjmVuQgRExMgLRmI; ap=1; _vwo_uuid_v2=00155C1FC5702A31286CF5A87975D698|3ef9749a4fa85cf859df89d7a67e2253; _pk_ses.100001.4cf6=*; __utmb=30149280.0.10.1495780958; __utmc=30149280; __utmb=223695111.7.10.1495780958; __utmc=223695111; __utmt=1',
+            'Cookie': 'll="118371"; bid=z4GRBn7NmTI; __ads_session=T3814has6gjrafsAfgA=; _pk_id.100001.4cf6=3f2624e8d8e5cadf.1495968834.1.1495968848.1495968834.; _pk_ses.100001.4cf6=*; __utma=30149280.646039394.1495968834.1495968834.1495968834.1; __utmb=30149280.0.10.1495968834; __utmc=30149280; __utmz=30149280.1495968834.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utma=223695111.1871929650.1495968834.1495968834.1495968834.1; __utmb=223695111.0.10.1495968834; __utmc=223695111; __utmz=223695111.1495968834.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __yadk_uid=FbGIKgjVvhE4MufTvhIPodZNarSemX7P',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1'
         }
@@ -51,6 +51,7 @@ class Douban:
             list_t = etree.HTML(list_r.text)
             list = list_t.xpath('//a[@class=""]/@href')
             if len(list) > 0:
+                print(page_count) #test output
                 yield list
                 page_count += 1
                 #get next page
@@ -59,9 +60,20 @@ class Douban:
                 time.sleep(self.list_sleep_time)
             else: break
 
+    def rm_quote(self, s):
+        while True:
+            pos = s.find('"')
+            if pos == -1: break
+            s = s[:pos] + ' ' + s[pos+1:]
+        return s
+
     def get_str(self, strs):
         if len(strs) > 0:
-            return strs[0]
+            s = self.rm_quote(strs[0])
+            if len(s) > 255:
+                return s[0:255]
+            else:
+                return s
         else:
             return ''
 
@@ -76,8 +88,8 @@ class Douban:
             return data
         data['douban_id'] = url.split('/')[-2]
         data_t = etree.HTML(data_r.text)
-        data['title'] = data_t.xpath('//title/text()')[0].strip().rstrip('(豆瓣)')
-        data['original_title'] = data_t.xpath('//span[@property="v:itemreviewed"]/text()')[0]
+        data['title'] = self.rm_quote(data_t.xpath('//title/text()')[0].strip().rstrip('(豆瓣)'))
+        data['original_title'] = self.rm_quote(data_t.xpath('//span[@property="v:itemreviewed"]/text()')[0])
         data['poster_url'] = data_t.xpath('//img[@rel="v:image"]/@src')[0]
         datas = str(data_t.xpath('string(//div[@id="info"])'))
         data['director'] = self.get_str(re.findall(pattern = '导演: (.*?)\n', string = datas))
@@ -92,7 +104,7 @@ class Douban:
         data['imdb_id'] = self.get_str(re.findall(pattern = 'IMDb链接: (.*?)\n', string = datas))
         score = data_t.xpath('//strong[@class="ll rating_num"]/text()')
         data['douban_score'] = 'none' if len(score) == 0 else score[0]
-        plots_data = data_t.xpath('string(//span[@property="v:summary"])')
+        plots_data = self.rm_quote(data_t.xpath('string(//span[@property="v:summary"])'))
         plots = re.findall(pattern = '\u3000\u3000(.*?)\n', string = plots_data)
         plot = ''
         for s in plots: plot += (s + '\n')
@@ -122,10 +134,11 @@ class Douban:
 
     def get_all_datas(self):
         for tag in range(self.lists_first, self.lists_last):
+            print(tag)  #test output
             for list in self.get_list(tag):
                 for data in self.get_datas(list):
                     yield data
-                set_file = open('set.dat', 'w')
-                set_file.write(str(tag + 1) + '\n')
-                set_file.write(str(self.lists_last))
-                set_file.close()
+            set_file = open('set.dat', 'w')
+            set_file.write(str(tag + 1) + '\n')
+            set_file.write(str(self.lists_last))
+            set_file.close()
