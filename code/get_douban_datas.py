@@ -85,6 +85,7 @@ class Douban:
         data['director'] = self.get_str(re.findall(pattern = '导演: (.*?)\n', string = datas))
         data['writers'] = self.get_str(re.findall(pattern = '编剧: (.*?)\n', string = datas))
         data['actors'] = self.get_str(re.findall(pattern = '主演: (.*?)\n', string = datas))
+        data['type'] = self.get_str(re.findall(pattern = '类型: (.*?)\n', string = datas))
         data['producer_area'] = self.get_str(re.findall(pattern = '制片国家/地区: (.*?)\n', string = datas))
         data['language'] = self.get_str(re.findall(pattern = '语言: (.*?)\n', string = datas))
         data['release_data'] = self.get_str(re.findall(pattern = '上映日期: (.*?)\n', string = datas))
@@ -104,7 +105,9 @@ class Douban:
         data_headers = self.main_headers.copy()
         data_headers['Cookie'] += self.cookie_value
         for url in url_list:
-            if not self.check_tree.check(url.split('/')[-2]):
+            strs = url.split('/')
+            if len(strs) < 2: continue
+            if not self.check_tree.check(strs[-2]):
                 yield self.get_data(url, data_headers)
                 time.sleep(self.data_sleep_time)
 
@@ -113,7 +116,9 @@ class Douban:
         url_pool_file.write('')
         url_pool_file.close()
         for url in self.url_pool:
-            if not self.check_tree.check(url.split('/')[-2]):
+            strs = url.split('/')
+            if len(strs) < 2: continue
+            if not self.check_tree.check(strs[-2]):
                 yield self.get_data(url, self.main_headers)
                 time.sleep(self.data_sleep_time)
 
