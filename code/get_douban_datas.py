@@ -76,10 +76,8 @@ class Douban:
             return data
         data['douban_id'] = url.split('/')[-2]
         data_t = etree.HTML(data_r.text)
-        titles = data_t.xpath('//span[@property="v:itemreviewed"]/text()')[0]
-        space_pos = titles.find(' ')
-        data['title'] = titles[0:space_pos]
-        data['original_title'] = titles[0] if space_pos == -1 else titles[space_pos:-1] 
+        data['title'] = data_t.xpath('//title/text()')[0].strip().rstrip('(豆瓣)')
+        data['original_title'] = data_t.xpath('//span[@property="v:itemreviewed"]/text()')[0]
         data['poster_url'] = data_t.xpath('//img[@rel="v:image"]/@src')[0]
         datas = str(data_t.xpath('string(//div[@id="info"])'))
         data['director'] = self.get_str(re.findall(pattern = '导演: (.*?)\n', string = datas))
