@@ -1,3 +1,3 @@
 from get_douban_datas import Douban
 test = Douban()
-for data in test.get_all_datas(): print(data)
+for data in test.get_bad_connect_data(): print(data)

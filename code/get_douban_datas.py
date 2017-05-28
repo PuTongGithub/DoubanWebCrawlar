@@ -2,6 +2,7 @@ import requests
 from lxml import etree
 import re
 import time
+from url_check import D_tree
 
 class Douban:
     def __init__(self):
@@ -23,6 +24,12 @@ class Douban:
         }
         self.cookie_key = '__ads_session'
         self.cookie_value = ''
+        self.check_tree = D_tree()
+        url_pool_file = open('bad_connection.dat')
+        self.url_pool = []
+        for url in url_pool_file.readlines():
+            self.url_pool.append(url.strip())
+        url_pool_file.close()
         set_file = open('set.dat')
         set = set_file.readlines()
         self.lists_first = int(set[0])
@@ -61,7 +68,12 @@ class Douban:
     def get_data(self, url, data_headers):
         data_r = requests.get(url, headers = data_headers)
         data = {}
-        if data_r.status_code != 200: return data
+        if data_r.status_code != 200:
+            self.url_pool.append(url)
+            url_pool_file = open('bad_connection.dat', 'w+')
+            url_pool_file.write(url)
+            url_pool_file.close()
+            return data
         data['douban_id'] = url.split('/')[-2]
         data_t = etree.HTML(data_r.text)
         titles = data_t.xpath('//span[@property="v:itemreviewed"]/text()')[0]
@@ -92,8 +104,18 @@ class Douban:
         data_headers = self.main_headers.copy()
         data_headers['Cookie'] += self.cookie_value
         for url in url_list:
-            yield self.get_data(url, data_headers)
-            time.sleep(self.data_sleep_time)
+            if not self.check_tree.check(url.split('/')[-2]):
+                yield self.get_data(url, data_headers)
+                time.sleep(self.data_sleep_time)
+
+    def get_bad_connect_data(self):
+        url_pool_file = open('bad_connection.dat', 'w')
+        url_pool_file.write('')
+        url_pool_file.close()
+        for url in self.url_pool:
+            if not self.check_tree.check(url.split('/')[-2]):
+                yield self.get_data(url, self.main_headers)
+                time.sleep(self.data_sleep_time)
 
     def get_all_datas(self):
         for tag in range(self.lists_first, self.lists_last):
