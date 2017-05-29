@@ -2,7 +2,7 @@ import pymysql
 
 class Database:
     def __init__(self, database_tag = 0):
-        self.db = pymysql.connect(host = 'localhost', user = 'root', passwd = 'ptdb', db = 'MovieDatabase', charset = 'utf8')
+        self.db = pymysql.connect(host = 'localhost', user = 'root', passwd = 'ptdb', db = 'MovieDatabase', charset = 'utf8mb4')
         self.cur = self.db.cursor()
         #creat table
         self.table_name = 'movies_{0}'.format(database_tag)
@@ -11,21 +11,21 @@ class Database:
                 id int not null auto_increment,
                 title varchar(255),
                 original_title varchar(255),
-                douban_id varchar(10),
+                douban_id varchar(20),
                 poster_url varchar(255),
                 director varchar(255),
                 writers varchar(255),
                 actors text,
-                type varchar(100),
-                producer_area varchar(100),
-                language varchar(50),
-                release_data varchar(150),
+                type varchar(255),
+                producer_area varchar(255),
+                language varchar(255),
+                release_data varchar(255),
                 film_length varchar(255),
                 other_title varchar(255),
                 imdb_id varchar(20),
-                douban_score varchar(10),
+                douban_score varchar(20),
                 plot text,
-                primary key(id))charset=utf8""" % self.table_name
+                primary key(id))charset=utf8mb4""" % self.table_name
         )
         
     def insert(self, data):

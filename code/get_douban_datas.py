@@ -89,7 +89,7 @@ class Douban:
         data['douban_id'] = url.split('/')[-2]
         data_t = etree.HTML(data_r.text)
         data['title'] = self.rm_quote(data_t.xpath('//title/text()')[0].strip().rstrip('(豆瓣)'))
-        data['original_title'] = self.rm_quote(data_t.xpath('//span[@property="v:itemreviewed"]/text()')[0])
+        data['original_title'] = self.get_str(data_t.xpath('//span[@property="v:itemreviewed"]/text()'))
         data['poster_url'] = data_t.xpath('//img[@rel="v:image"]/@src')[0]
         datas = str(data_t.xpath('string(//div[@id="info"])'))
         data['director'] = self.get_str(re.findall(pattern = '导演: (.*?)\n', string = datas))
