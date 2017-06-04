@@ -2,7 +2,7 @@ import pymysql
 
 class Database:
     def __init__(self, database_tag = 0):
-        self.db = pymysql.connect(host = 'localhost', user = 'root', passwd = 'ptdb', db = 'MovieDatabase', charset = 'utf8mb4')
+        self.db = pymysql.connect(host = 'localhost', user = 'root', passwd = 'ptdb', db = 'MovieDB', charset = 'utf8mb4')
         self.cur = self.db.cursor()
         #creat table
         self.table_name = 'movies_{0}'.format(database_tag)

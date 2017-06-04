@@ -24,16 +24,22 @@ class Douban:
         }
         self.cookie_key = '__ads_session'
         self.cookie_value = ''
+        #get bad connection url from file
         self.check_tree = D_tree()
         url_pool_file = open('bad_connection.dat')
         self.url_pool = []
         for url in url_pool_file.readlines():
             self.url_pool.append(url.strip())
         url_pool_file.close()
+        #get lists key value from file
         set_file = open('set.dat')
         set = set_file.readlines()
-        self.lists_first = int(set[0])
-        self.lists_last = int(set[1])
+        if len(set) < 2:
+            self.lists_first = 1880
+            self.lists_last = 2025
+        else:
+            self.lists_first = int(set[0])
+            self.lists_last = int(set[1])
         set_file.close()
 
     def res_cookie(self, cookie):
@@ -46,7 +52,8 @@ class Douban:
         page_count = 0
         while True:
             #save cookie value
-            self.cookie_value = self.res_cookie(list_r.headers['Set-Cookie'])
+            if 'Set-Cookie' in list_r.headers.keys():
+                self.cookie_value = self.res_cookie(list_r.headers['Set-Cookie'])
             #return url list
             list_t = etree.HTML(list_r.text)
             list = list_t.xpath('//a[@class=""]/@href')
